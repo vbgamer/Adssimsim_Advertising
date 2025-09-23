@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Campaign } from '../../types';
 import Card from '../ui/Card';
@@ -69,11 +68,17 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onAdjustDiscount
                     {campaign.status === 'Uploading' && <Spinner className="h-4 w-4" />}
                     <StatusBadge status={campaign.status} />
                   </div>
-                  <p className={`text-sm ${campaign.status === 'Upload Failed' ? 'text-red-500 whitespace-pre-wrap' : 'text-slate-400'}`}>
-                    {campaign.status === 'Uploading' && 'Processing creative...'}
-                    {campaign.status === 'Upload Failed' && (campaign.uploadError || 'Something went wrong.')}
-                    {campaign.status !== 'Uploading' && campaign.status !== 'Upload Failed' && `${campaign.impressions.toLocaleString()} views`}
-                  </p>
+                  <div className="text-sm mt-1">
+                    {campaign.status === 'Uploading' && <p className="text-slate-400">Processing creative...</p>}
+                    {campaign.status === 'Upload Failed' && (
+                      <pre className="text-red-500 whitespace-pre-wrap font-sans text-xs">
+                        {campaign.uploadError || 'Something went wrong.'}
+                      </pre>
+                    )}
+                    {campaign.status !== 'Uploading' && campaign.status !== 'Upload Failed' && (
+                      <p className="text-slate-400">{`${campaign.impressions.toLocaleString()} views`}</p>
+                    )}
+                  </div>
                 </div>
               </div>
               {campaign.status !== 'Uploading' && campaign.status !== 'Upload Failed' && (
