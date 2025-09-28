@@ -1,7 +1,4 @@
 
-
-
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { Campaign, User, Role, UserGender } from './types';
 import AdvertiserDashboard from './components/advertiser/AdvertiserDashboard';
@@ -71,6 +68,24 @@ const App: React.FC = () => {
                 console.error('Error fetching profile:', error.message);
                 setCurrentUser(null);
             } else if (data) {
+                // FIX: Correct initial credit balance for new advertisers if backend trigger fails.
+                const isNewlyCreated = (Date.now() - new Date(session.user.created_at).getTime()) < 60000; // Within 1 minute of creation
+                if (data.role === 'advertiser' && (data.credit_balance === null || data.credit_balance === 0) && isNewlyCreated) {
+                    const { data: updatedProfile, error: updateError } = await supabase
+                        .from('profiles')
+                        .update({ credit_balance: 500 })
+                        .eq('id', session.user.id)
+                        .select()
+                        .single();
+
+                    if (updateError) {
+                        console.error("Failed to apply initial credit balance for new advertiser.", updateError);
+                    } else if (updatedProfile) {
+                        // Use the corrected data for the current session
+                        data.credit_balance = updatedProfile.credit_balance;
+                    }
+                }
+                
                 const userProfile: User = {
                     id: data.id,
                     username: data.username,
@@ -338,25 +353,47 @@ const AdGalleryPage: React.FC<AdGalleryPageProps> = ({ onViewerAuthRequest, onAd
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchActiveCampaigns = async () => {
-            setIsLoading(true);
-            const { data, error } = await supabase
-              .from('campaigns')
-              .select('*')
-              .eq('status', 'Active')
-              .order('created_at', { ascending: false });
+    const fetchActiveCampaigns = useCallback(async () => {
+        const { data, error } = await supabase
+          .from('campaigns')
+          .select('*')
+          .eq('status', 'Active')
+          .order('created_at', { ascending: false });
 
-            if (error) {
-              console.error("Error fetching active campaigns:", error);
-              setCampaigns([]);
-            } else if (data) {
-              setCampaigns(formatCampaigns(data));
-            }
-            setIsLoading(false);
-        };
-        fetchActiveCampaigns();
+        if (error) {
+          console.error("Error fetching active campaigns:", error);
+          setCampaigns([]);
+        } else if (data) {
+          setCampaigns(formatCampaigns(data));
+        }
+        setIsLoading(false);
     }, []);
+
+    useEffect(() => {
+        setIsLoading(true);
+        fetchActiveCampaigns();
+
+        // Poll for changes every 15 seconds as a fallback for misconfigured realtime
+        const intervalId = setInterval(fetchActiveCampaigns, 15000);
+
+        const channel = supabase.channel('campaigns-public-gallery')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'campaigns' },
+                (payload) => {
+                    console.log('Campaigns table change detected, refetching.');
+                    clearInterval(intervalId); // Realtime is working, stop polling.
+                    fetchActiveCampaigns();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            clearInterval(intervalId);
+            supabase.removeChannel(channel);
+        };
+    }, [fetchActiveCampaigns]);
+
 
     return (
         <div className="container mx-auto px-4 py-8">

@@ -55,6 +55,33 @@ const SubmissionSuccessToast = ({ show, message, onClose }: { show: boolean; mes
     );
 };
 
+const UploadingToast = ({ campaignName, onClose }: { campaignName: string | null; onClose: () => void; }) => {
+    const show = !!campaignName;
+    return (
+        <div
+            aria-live="assertive"
+            className={`fixed top-5 right-5 z-50 transition-all duration-500 ease-in-out ${
+                show ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'
+            }`}
+        >
+            {show && (
+                <div className="bg-sky-500 text-off-white p-4 rounded-lg shadow-lg flex items-start gap-3 max-w-sm shadow-sky-500/40">
+                    <Spinner className="h-6 w-6 flex-shrink-0 mt-0.5 border-t-white" />
+                    <div>
+                        <p className="font-bold">Upload in Progress</p>
+                        <p className="text-sm">Your campaign "{campaignName}" is uploading. This may take a few minutes for large files.</p>
+                    </div>
+                     <button onClick={onClose} className="-mt-2 -mr-2 p-1 rounded-full hover:bg-sky-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
+
 const formatCampaigns = (data: any[]): Campaign[] => {
     return data.map((c): Campaign => ({
       id: c.id,
@@ -85,6 +112,7 @@ const AdvertiserDashboard: React.FC<AdvertiserDashboardProps> = ({ user, onLogou
   const [isLoading, setIsLoading] = useState(true);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [successToastMessage, setSuccessToastMessage] = useState('');
+  const [uploadingCampaignName, setUploadingCampaignName] = useState<string | null>(null);
 
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
   const [selectedCampaignForDiscount, setSelectedCampaignForDiscount] = useState<Campaign | null>(null);
@@ -108,7 +136,27 @@ const AdvertiserDashboard: React.FC<AdvertiserDashboardProps> = ({ user, onLogou
   useEffect(() => {
     setIsLoading(true);
     fetchAdvertiserCampaigns();
-  }, [fetchAdvertiserCampaigns]);
+
+    // Poll for changes every 15 seconds as a fallback for misconfigured realtime
+    const intervalId = setInterval(fetchAdvertiserCampaigns, 15000);
+
+    const channel = supabase.channel(`campaigns-advertiser-${user.id}`)
+        .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'campaigns', filter: `advertiser_id=eq.${user.id}` },
+            (payload) => {
+                console.log('Advertiser campaign change detected, refetching.');
+                clearInterval(intervalId); // Realtime is working, stop polling.
+                fetchAdvertiserCampaigns();
+            }
+        )
+        .subscribe();
+
+    return () => {
+        clearInterval(intervalId);
+        supabase.removeChannel(channel);
+    };
+  }, [fetchAdvertiserCampaigns, user.id]);
 
 
   const visibleCampaigns = campaigns.filter(c => c.status !== 'Uploading' && c.status !== 'Upload Failed');
@@ -123,6 +171,7 @@ const AdvertiserDashboard: React.FC<AdvertiserDashboardProps> = ({ user, onLogou
     setIsModalOpen(false); // Close modal immediately for a responsive feel
 
     const tempId = `temp-${Date.now()}`;
+    
     const tempCampaign: Campaign = {
       ...newCampaignData,
       id: tempId,
@@ -136,6 +185,7 @@ const AdvertiserDashboard: React.FC<AdvertiserDashboardProps> = ({ user, onLogou
     };
 
     setCampaigns(prev => [tempCampaign, ...prev]);
+    setUploadingCampaignName(newCampaignData.name);
 
     try {
       // 1. Upload creative
@@ -167,7 +217,7 @@ const AdvertiserDashboard: React.FC<AdvertiserDashboardProps> = ({ user, onLogou
       }
       
       // 3. Insert campaign into database
-      const { error } = await supabase
+      const { error: insertError } = await supabase
         .from('campaigns')
         .insert({
           name: newCampaignData.name,
@@ -186,16 +236,20 @@ const AdvertiserDashboard: React.FC<AdvertiserDashboardProps> = ({ user, onLogou
           status: 'Pending', // Set status to Pending for review
         });
 
-      if (error) throw error;
+      if (insertError) {
+        throw insertError; // Propagate the original error
+      }
       
-      // 4. Refresh campaign list from DB
+      // 4. Refresh campaign list from DB (realtime listener will handle this, but an explicit call provides faster feedback)
       await fetchAdvertiserCampaigns();
 
       // 5. Show success notification
+      setUploadingCampaignName(null);
       setSuccessToastMessage(`Your campaign "${newCampaignData.name}" is submitted for review. An email has been sent from ${user.email} to bhosalevedant333@gmail.com.`);
       setShowSuccessToast(true);
 
     } catch (error: any) {
+        setUploadingCampaignName(null);
         console.error("Error creating campaign background task:", error); // Log the full object for better debugging
 
         const getErrorMessage = (e: any): string => {
@@ -241,7 +295,7 @@ This is the most common error when setting up the project. To fix it, please run
                 .from('campaign_creatives')
                 .upload(filePath, file);
             if (uploadError) throw uploadError;
-            const { data: { publicUrl } } = supabase.storage
+            const { data: { publicUrl } } = await supabase.storage
                 .from('campaign_creatives')
                 .getPublicUrl(filePath);
             return publicUrl;
@@ -307,6 +361,10 @@ This is the most common error when setting up the project. To fix it, please run
         show={showSuccessToast}
         message={successToastMessage}
         onClose={() => setShowSuccessToast(false)}
+      />
+      <UploadingToast
+        campaignName={uploadingCampaignName}
+        onClose={() => setUploadingCampaignName(null)}
       />
       {/* Header */}
       <header className="bg-dark/80 backdrop-blur-sm sticky top-0 z-40 border-b border-gray-700">

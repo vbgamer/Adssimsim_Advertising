@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Button from '../ui/Button';
 import Spinner from '../ui/Spinner';
@@ -31,6 +30,13 @@ const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onCampaignSubmi
   
   // UI state
   const [error, setError] = useState<string | null>(null);
+  const [campaignCost, setCampaignCost] = useState(0);
+
+  useEffect(() => {
+    const cost = (duration / 60) * COST_PER_MINUTE;
+    setCampaignCost(cost);
+  }, [duration]);
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -75,8 +81,6 @@ const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onCampaignSubmi
       return;
     }
     
-    const campaignCost = (duration / 60) * COST_PER_MINUTE;
-
     // Pass all data and the file to the parent component
     onCampaignSubmit({
       name,
@@ -123,6 +127,7 @@ const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onCampaignSubmi
         <div>
           <label htmlFor="duration" className="block text-sm font-medium text-gray-300">Ad Duration (seconds)</label>
           <input type="number" id="duration" value={duration} onChange={(e) => setDuration(Number(e.target.value))} min="1" className="mt-1 block w-full bg-gray-800 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 transition-all duration-200" required />
+          <p className="text-xs text-gray-500 mt-1">Estimated Cost: <span className="font-semibold text-accent-500">{campaignCost.toLocaleString()} PTS</span></p>
         </div>
         
         <div>

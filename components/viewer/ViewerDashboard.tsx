@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Campaign, WatchedAd, User } from '../../types';
 import AdFeed from './AdFeed';
@@ -48,26 +49,47 @@ const ViewerDashboard: React.FC<ViewerDashboardProps> = ({ user, onLogout, onRew
   const [activeTab, setActiveTab] = useState<ViewerTab>('Lit');
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    const fetchActiveCampaigns = async () => {
-      setIsLoading(true);
-      const { data, error } = await supabase
-        .from('campaigns')
-        .select('*')
-        .eq('status', 'Active')
-        .order('created_at', { ascending: false });
+  const fetchActiveCampaigns = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('campaigns')
+      .select('*')
+      .eq('status', 'Active')
+      .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error("Error fetching active campaigns:", error);
-        setCampaigns([]);
-      } else if (data) {
-        setCampaigns(formatCampaigns(data));
-      }
-      setIsLoading(false);
-    };
-
-    fetchActiveCampaigns();
+    if (error) {
+      console.error("Error fetching active campaigns:", error);
+      setCampaigns([]);
+    } else if (data) {
+      setCampaigns(formatCampaigns(data));
+    }
+    setIsLoading(false);
   }, []);
+
+  useEffect(() => {
+    setIsLoading(true);
+    fetchActiveCampaigns();
+
+    // Poll for changes every 15 seconds as a fallback for misconfigured realtime
+    const intervalId = setInterval(fetchActiveCampaigns, 15000);
+
+    const channel = supabase.channel(`campaigns-viewer-${user.id}`)
+        .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'campaigns' },
+            (payload) => {
+                console.log('Campaigns table change detected for viewer, refetching.');
+                clearInterval(intervalId); // Realtime is working, stop polling.
+                fetchActiveCampaigns();
+            }
+        )
+        .subscribe();
+
+    return () => {
+        clearInterval(intervalId);
+        supabase.removeChannel(channel);
+    };
+  }, [fetchActiveCampaigns, user.id]);
+
 
   useEffect(() => {
     const fetchHistory = async () => {

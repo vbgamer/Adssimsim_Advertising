@@ -73,7 +73,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
                   subscribers: Math.floor(Math.random() * 50000) + 1000,
                   banner_url: `https://picsum.photos/seed/${encodeURIComponent(username)}banner/1200/400`,
                   logo_url: `https://picsum.photos/seed/${encodeURIComponent(username)}logo/200`,
-                  credit_balance: 50000,
+                  credit_balance: 500,
               } : {})
             }
           }

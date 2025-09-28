@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Campaign } from '../../types';
 import Card from '../ui/Card';
@@ -69,7 +70,7 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onAdjustDiscount
                     <StatusBadge status={campaign.status} />
                   </div>
                   <div className="text-sm mt-1">
-                    {campaign.status === 'Uploading' && <p className="text-gray-400">Processing creative...</p>}
+                    {campaign.status === 'Uploading' && <p className="text-gray-400">Uploading creative... This can take a few minutes for large videos.</p>}
                     {campaign.status === 'Upload Failed' && (
                       <pre className="text-red-500 whitespace-pre-wrap font-sans text-xs">
                         {campaign.uploadError || 'Something went wrong.'}
