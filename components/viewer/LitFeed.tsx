@@ -17,7 +17,7 @@ const LitFeed: React.FC<LitFeedProps> = ({ campaigns, onWatchAd }) => {
     return (
       <Card className="p-8 text-center">
         <h3 className="text-xl font-semibold text-white">Nothing's Lit Right Now</h3>
-        <p className="text-slate-400 mt-2">Check back later for trending ads!</p>
+        <p className="text-gray-400 mt-2">Check back later for trending ads!</p>
       </Card>
     );
   }
@@ -34,10 +34,10 @@ const LitFeed: React.FC<LitFeedProps> = ({ campaigns, onWatchAd }) => {
              <div className="flex items-start justify-between gap-4">
                 <div>
                     <h3 className="text-xl font-bold text-white">{campaign.name}</h3>
-                    <p className="text-sm text-slate-400 mt-1">from {campaign.company.name}</p>
+                    <p className="text-sm text-gray-400 mt-1">from {campaign.company.name}</p>
                 </div>
              </div>
-             <p className="text-slate-300 mt-2 text-sm">{campaign.campaignGoal}</p>
+             <p className="text-gray-300 mt-2 text-sm">{campaign.campaignGoal}</p>
              <Button onClick={() => onWatchAd(campaign)} className="mt-4 w-full" variant="secondary">
               Watch & Earn
             </Button>

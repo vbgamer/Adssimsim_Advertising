@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
@@ -18,8 +19,8 @@ const ToggleSwitch: React.FC<{ isEnabled: boolean; onChange: (enabled: boolean) 
         aria-checked={isEnabled}
         onClick={() => onChange(!isEnabled)}
         className={`${
-            isEnabled ? 'bg-primary-600' : 'bg-slate-600'
-        } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-slate-800`}
+            isEnabled ? 'bg-primary-500' : 'bg-gray-700'
+        } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-charcoal`}
     >
         <span
             aria-hidden="true"
@@ -78,16 +79,16 @@ const AdjustDiscountCouponModal: React.FC<AdjustDiscountCouponModalProps> = ({ i
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={modalTitle}>
             <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-charcoal/50 rounded-lg">
                     <div>
                         <h4 className="font-semibold text-white">Enable Discount Coupon</h4>
-                        <p className="text-sm text-slate-400">If enabled, viewers will see this coupon code.</p>
+                        <p className="text-sm text-gray-400">If enabled, viewers will see this coupon code.</p>
                     </div>
                     <ToggleSwitch isEnabled={isEnabled} onChange={setIsEnabled} />
                 </div>
 
                 <div className={`transition-opacity duration-300 ${isEnabled ? 'opacity-100' : 'opacity-50'}`}>
-                    <label htmlFor="discount-code" className="block text-sm font-medium text-slate-300">
+                    <label htmlFor="discount-code" className="block text-sm font-medium text-gray-300">
                         Discount Code
                     </label>
                     <div className="mt-2">
@@ -97,7 +98,7 @@ const AdjustDiscountCouponModal: React.FC<AdjustDiscountCouponModalProps> = ({ i
                             value={discountCode}
                             onChange={(e) => setDiscountCode(e.target.value)}
                             placeholder="e.g., SAVE20, SUMMERDEAL"
-                            className="w-full bg-slate-700 border border-slate-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                             disabled={!isEnabled || isLoading}
                         />
                     </div>

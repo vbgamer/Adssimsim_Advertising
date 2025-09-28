@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
@@ -18,8 +19,8 @@ const ToggleSwitch: React.FC<{ isEnabled: boolean; onChange: (enabled: boolean) 
         aria-checked={isEnabled}
         onClick={() => onChange(!isEnabled)}
         className={`${
-            isEnabled ? 'bg-primary-600' : 'bg-slate-600'
-        } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-slate-800`}
+            isEnabled ? 'bg-primary-500' : 'bg-gray-700'
+        } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-charcoal`}
     >
         <span
             aria-hidden="true"
@@ -83,16 +84,16 @@ const AdjustDiscountModal: React.FC<AdjustDiscountModalProps> = ({ isOpen, onClo
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={modalTitle}>
             <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-charcoal/50 rounded-lg">
                     <div>
                         <h4 className="font-semibold text-white">Enable Cashback</h4>
-                        <p className="text-sm text-slate-400">If disabled, viewers will not receive points for this ad.</p>
+                        <p className="text-sm text-gray-400">If disabled, viewers will not receive points for this ad.</p>
                     </div>
                     <ToggleSwitch isEnabled={isEnabled} onChange={setIsEnabled} />
                 </div>
 
                 <div className={`transition-opacity duration-300 ${isEnabled ? 'opacity-100' : 'opacity-50'}`}>
-                    <label htmlFor="cashback-amount" className="block text-sm font-medium text-slate-300">
+                    <label htmlFor="cashback-amount" className="block text-sm font-medium text-gray-300">
                         Adjust the cash back per view
                     </label>
                     <div className="mt-2 flex items-center gap-4">
@@ -102,7 +103,7 @@ const AdjustDiscountModal: React.FC<AdjustDiscountModalProps> = ({ isOpen, onClo
                             max="500"
                             value={reward}
                             onChange={(e) => handleRewardChange(Number(e.target.value))}
-                            className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-primary-500"
+                            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary-500"
                             disabled={!isEnabled || isLoading}
                         />
                         <div className="relative">
@@ -111,10 +112,10 @@ const AdjustDiscountModal: React.FC<AdjustDiscountModalProps> = ({ isOpen, onClo
                                 id="cashback-amount"
                                 value={reward}
                                 onChange={(e) => handleRewardChange(Number(e.target.value))}
-                                className="w-24 bg-slate-700 border border-slate-600 rounded-md py-2 px-3 text-white text-center focus:outline-none focus:ring-primary-500 focus:border-primary-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                className="w-24 bg-gray-800 border border-gray-700 rounded-md py-2 px-3 text-white text-center focus:outline-none focus:ring-primary-500 focus:border-primary-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-all duration-200"
                                 disabled={!isEnabled || isLoading}
                             />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">PTS</span>
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">PTS</span>
                         </div>
                     </div>
                 </div>

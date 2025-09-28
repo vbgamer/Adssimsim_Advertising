@@ -22,14 +22,14 @@ const NavItem = ({
   onClick: () => void;
 }) => (
   <button onClick={onClick} className="flex flex-col items-center gap-1 w-full p-2 transition-colors">
-    <Icon className={`h-6 w-6 ${isActive ? 'text-primary-400' : 'text-slate-400'}`} />
-    <span className={`text-xs font-medium ${isActive ? 'text-primary-400' : 'text-slate-400'}`}>{label}</span>
+    <Icon className={`h-6 w-6 ${isActive ? 'text-primary-500' : 'text-gray-400'}`} />
+    <span className={`text-xs font-medium ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>{label}</span>
   </button>
 );
 
 const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeTab, onTabChange }) => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-16 bg-slate-900/80 backdrop-blur-sm border-t border-slate-800 z-40">
+    <div className="fixed bottom-0 left-0 right-0 h-16 bg-charcoal/80 backdrop-blur-sm border-t border-gray-700 z-40">
       <div className="container mx-auto h-full flex items-center justify-around">
         <NavItem Icon={HomeIcon} label="Explore" isActive={activeTab === 'Explore'} onClick={() => onTabChange('Explore')} />
         <NavItem Icon={FireIcon} label="Lit" isActive={activeTab === 'Lit'} onClick={() => onTabChange('Lit')} />

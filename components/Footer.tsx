@@ -14,7 +14,7 @@ const faqs = [
         answer: "You can redeem your points for various rewards in the 'You' section of your dashboard. Options include gift cards, discounts, and more."
     },
     {
-        question: "Is Adssimsim Advertising free to use for viewers?",
+        question: "Adssimsim Advertising free to use for viewers?",
         answer: "Yes, it's completely free for viewers! You get paid in points to watch content from brands you might like."
     },
     {
@@ -29,7 +29,7 @@ const faqs = [
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-slate-950 text-slate-400 border-t border-slate-800">
+    <footer className="bg-dark text-gray-400 border-t border-gray-700">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
         {/* FAQ Section */}
@@ -37,7 +37,7 @@ const Footer: React.FC = () => {
             <h2 className="text-3xl font-bold text-center text-white mb-8">Frequently Asked Questions</h2>
             <div className="space-y-4">
                 {faqs.map((faq, index) => (
-                    <details key={index} className="bg-slate-800/50 p-4 rounded-lg group">
+                    <details key={index} className="bg-charcoal p-4 rounded-lg group">
                         <summary className="font-semibold text-white cursor-pointer list-none flex justify-between items-center">
                             {faq.question}
                             <span className="transform transition-transform duration-300 group-open:rotate-180">
@@ -46,7 +46,7 @@ const Footer: React.FC = () => {
                                 </svg>
                             </span>
                         </summary>
-                        <p className="text-slate-300 mt-2">{faq.answer}</p>
+                        <p className="text-gray-300 mt-2">{faq.answer}</p>
                     </details>
                 ))}
             </div>
@@ -56,15 +56,15 @@ const Footer: React.FC = () => {
         <div className="text-center mb-8">
             <h3 className="text-xl font-bold text-white mb-4">Contact Us</h3>
             <div className="flex justify-center items-center gap-6 flex-wrap">
-                <a href="mailto:support@adssimsim.com" className="flex items-center gap-2 hover:text-primary-400 transition-colors">
+                <a href="mailto:support@adssimsim.com" className="flex items-center gap-2 hover:text-primary-500 transition-colors">
                     <MailIcon className="h-6 w-6" />
                     <span>support@adssimsim.com</span>
                 </a>
-                <a href="tel:+1234567890" className="flex items-center gap-2 hover:text-primary-400 transition-colors">
+                <a href="tel:+1234567890" className="flex items-center gap-2 hover:text-primary-500 transition-colors">
                     <PhoneIcon className="h-6 w-6" />
                     <span>+1 (234) 567-890</span>
                 </a>
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-primary-400 transition-colors">
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-primary-500 transition-colors">
                     <InstagramIcon className="h-6 w-6" />
                     <span>@adssimsim</span>
                 </a>
@@ -72,7 +72,7 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-slate-800 pt-8 text-center text-sm">
+        <div className="border-t border-gray-700 pt-8 text-center text-sm">
             <p>&copy; {new Date().getFullYear()} Adssimsim Advertising. All rights reserved. Powered by Gemini.</p>
         </div>
       </div>

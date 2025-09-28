@@ -36,7 +36,7 @@ const SubmissionSuccessToast = ({ show, message, onClose }: { show: boolean; mes
             }`}
         >
             {show && (
-                <div className="bg-blue-600 text-white p-4 rounded-lg shadow-lg flex items-start gap-3 max-w-sm">
+                <div className="bg-primary-500 text-off-white p-4 rounded-lg shadow-lg flex items-start gap-3 max-w-sm shadow-primary-500/40">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -44,7 +44,7 @@ const SubmissionSuccessToast = ({ show, message, onClose }: { show: boolean; mes
                         <p className="font-bold">Campaign Submitted!</p>
                         <p className="text-sm">{message}</p>
                     </div>
-                     <button onClick={onClose} className="-mt-2 -mr-2 p-1 rounded-full hover:bg-blue-700 transition-colors">
+                     <button onClick={onClose} className="-mt-2 -mr-2 p-1 rounded-full hover:bg-primary-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -302,14 +302,14 @@ This is the most common error when setting up the project. To fix it, please run
   };
 
   return (
-    <div className="bg-slate-900 min-h-screen text-white">
+    <div className="min-h-screen text-white">
       <SubmissionSuccessToast 
         show={showSuccessToast}
         message={successToastMessage}
         onClose={() => setShowSuccessToast(false)}
       />
       {/* Header */}
-      <header className="bg-slate-900/80 backdrop-blur-sm sticky top-0 z-40 border-b border-slate-800">
+      <header className="bg-dark/80 backdrop-blur-sm sticky top-0 z-40 border-b border-gray-700">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
            <span className="text-xl font-bold text-white">Advertiser Hub</span>
            <div className="flex items-center gap-4">
@@ -322,18 +322,18 @@ This is the most common error when setting up the project. To fix it, please run
       {/* Profile Section */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mt-8">
-          <div className="h-48 md:h-64 bg-slate-800 rounded-2xl overflow-hidden">
-            {user.bannerUrl ? <img src={user.bannerUrl} alt="Company banner" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-slate-800"></div>}
+          <div className="h-48 md:h-64 bg-charcoal rounded-2xl overflow-hidden">
+            {user.bannerUrl ? <img src={user.bannerUrl} alt="Company banner" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-charcoal"></div>}
           </div>
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 sm:-mt-20">
             <div className="flex items-end space-x-5">
-              <div className="h-32 w-32 sm:h-40 sm:w-40 rounded-full ring-4 ring-slate-900 overflow-hidden bg-slate-700">
+              <div className="h-32 w-32 sm:h-40 sm:w-40 rounded-full ring-4 ring-dark overflow-hidden bg-gray-800">
                 {user.logoUrl && <img src={user.logoUrl} alt="Company logo" className="h-full w-full object-cover" />}
               </div>
               <div className="pb-4 sm:pb-6 flex-grow flex items-center justify-between gap-4">
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-bold text-white">{user.username}</h1>
-                  <p className="text-sm text-slate-400">{user.subscribers?.toLocaleString() ?? 0} Subscribers</p>
+                  <p className="text-sm text-gray-400">{user.subscribers?.toLocaleString() ?? 0} Subscribers</p>
                 </div>
                 <Button variant="secondary" onClick={() => setIsEditProfileModalOpen(true)}>Edit Profile</Button>
               </div>
@@ -354,15 +354,15 @@ This is the most common error when setting up the project. To fix it, please run
                 <h2 className="text-2xl font-bold text-white mb-4">Key Metrics</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <Card className="p-6">
-                    <h3 className="text-slate-400 text-sm font-medium">Credit Balance</h3>
+                    <h3 className="text-gray-400 text-sm font-medium">Credit Balance</h3>
                     <p className="text-3xl font-semibold text-white">{(user.creditBalance ?? 0).toLocaleString()} PTS</p>
                   </Card>
                   <Card className="p-6">
-                    <h3 className="text-slate-400 text-sm font-medium">Points Rewarded</h3>
+                    <h3 className="text-gray-400 text-sm font-medium">Points Rewarded</h3>
                     <p className="text-3xl font-semibold text-white mt-1">{totalRewardedPoints.toLocaleString()}</p>
                   </Card>
                   <Card className="p-6">
-                    <h3 className="text-slate-400 text-sm font-medium">Total Views</h3>
+                    <h3 className="text-gray-400 text-sm font-medium">Total Views</h3>
                     <p className="text-3xl font-semibold text-white mt-1">{totalImpressions.toLocaleString()}</p>
                   </Card>
                 </div>

@@ -23,7 +23,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, rewardPoints,
                 </div>
                 <div className="text-center sm:text-left">
                     <h1 className="text-3xl font-bold text-white">{user.username}</h1>
-                    <p className="text-slate-400">Welcome to your dashboard!</p>
+                    <p className="text-gray-400">Welcome to your dashboard!</p>
                 </div>
                 <div className="sm:ml-auto">
                     <Button onClick={onLogout} variant="secondary">Sign Out</Button>

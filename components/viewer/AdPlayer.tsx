@@ -128,11 +128,11 @@ const AdPlayer: React.FC<AdPlayerProps> = ({ ad, isOpen, onClaimReward, onClose 
   if (!isRendered) return null;
 
   return (
-    <div className={`fixed inset-0 z-50 flex justify-center items-center p-4 transition-all duration-300 ease-out ${isOpen ? 'bg-black bg-opacity-70 backdrop-blur-md' : 'bg-opacity-0 backdrop-blur-none'}`} onClick={onClose}>
-      <div className={`bg-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl h-full max-h-[90vh] flex flex-col relative overflow-hidden transform transition-all duration-300 ease-out ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`} onClick={(e) => e.stopPropagation()}>
+    <div className={`fixed inset-0 z-50 flex justify-center items-center p-4 transition-all duration-300 ease-out ${isOpen ? 'bg-dark bg-opacity-70 backdrop-blur-md' : 'bg-opacity-0 backdrop-blur-none'}`} onClick={onClose}>
+      <div className={`bg-dark rounded-2xl shadow-2xl w-full max-w-4xl h-full max-h-[90vh] flex flex-col relative overflow-hidden transform transition-all duration-300 ease-out ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`} onClick={(e) => e.stopPropagation()}>
         
         {/* Ad Content is now the main background */}
-        <div className="absolute inset-0 bg-black flex items-center justify-center -z-10">
+        <div className="absolute inset-0 bg-dark flex items-center justify-center -z-10">
              {isVideo ? (
                 <video 
                     ref={videoRef}
@@ -153,14 +153,14 @@ const AdPlayer: React.FC<AdPlayerProps> = ({ ad, isOpen, onClaimReward, onClose 
         <div className="flex flex-col h-full justify-between bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4">
             {/* Header section with Close Button */}
             <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3 p-2 bg-black/30 rounded-lg backdrop-blur-sm">
-                    <img src={ad.company.logoUrl} alt={ad.company.name} className="h-10 w-10 rounded-full bg-slate-700" />
+                <div className="flex items-center gap-3 p-2 bg-dark/30 rounded-lg backdrop-blur-sm">
+                    <img src={ad.company.logoUrl} alt={ad.company.name} className="h-10 w-10 rounded-full bg-gray-700" />
                     <div>
                         <p className="font-bold text-white">{ad.company.name}</p>
-                        <p className="text-xs text-slate-300">{ad.company.subscriberCount.toLocaleString()} subscribers</p>
+                        <p className="text-xs text-gray-300">{ad.company.subscriberCount.toLocaleString()} subscribers</p>
                     </div>
                 </div>
-                <button onClick={onClose} className="text-white/80 hover:text-white transition-colors z-10 p-2 bg-black/30 rounded-full backdrop-blur-sm" aria-label="Close player">
+                <button onClick={onClose} className="text-white/80 hover:text-white transition-colors z-10 p-2 bg-dark/30 rounded-full backdrop-blur-sm" aria-label="Close player">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -170,16 +170,16 @@ const AdPlayer: React.FC<AdPlayerProps> = ({ ad, isOpen, onClaimReward, onClose 
             {/* Action Panel */}
             <div className="space-y-4">
                 {/* Progress & Reward Section */}
-                <div className="bg-slate-900/50 backdrop-blur-md p-4 rounded-xl space-y-3 border border-slate-700/50">
+                <div className="bg-dark/50 backdrop-blur-md p-4 rounded-xl space-y-3 border border-gray-700/50">
                     <div className="flex justify-between items-center text-sm font-medium">
-                        <span className="text-slate-300 tabular-nums">Time: {formattedTime}</span>
+                        <span className="text-gray-300 tabular-nums">Time: {formattedTime}</span>
                         <div className="flex items-center gap-2">
-                            <span className="font-bold text-2xl text-amber-400">+{ad.reward}</span>
-                            <span className="text-slate-300">Points</span>
-                             <CoinsIcon className="h-6 w-6 text-amber-400" />
+                            <span className="font-bold text-2xl text-accent-500">+{ad.reward}</span>
+                            <span className="text-gray-300">Points</span>
+                             <CoinsIcon className="h-6 w-6 text-accent-500" />
                         </div>
                     </div>
-                    <div className="w-full bg-slate-700 rounded-full h-4 overflow-hidden" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="Ad progress">
+                    <div className="w-full bg-gray-800 rounded-full h-4 overflow-hidden" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="Ad progress">
                         <div 
                             className="bg-primary-500 h-4 rounded-full transition-all duration-150 ease-linear"
                             style={{ width: `${progress}%` }}
@@ -188,17 +188,17 @@ const AdPlayer: React.FC<AdPlayerProps> = ({ ad, isOpen, onClaimReward, onClose 
                 </div>
             
                 {/* Feedback Section */}
-                <div className="space-y-3 bg-slate-900/50 backdrop-blur-md p-4 rounded-xl border border-slate-700/50">
+                <div className="space-y-3 bg-dark/50 backdrop-blur-md p-4 rounded-xl border border-gray-700/50">
                     <p className="text-center text-sm font-semibold text-white">How was this ad?</p>
                     <div className="flex flex-wrap items-center justify-center gap-2">
                         {reactions.map(({ label, emoji }) => (
                             <button
                                 key={label}
                                 onClick={() => setReaction(label)}
-                                className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all text-xs font-semibold ${
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all text-xs font-semibold active:scale-110 ${
                                     reaction === label
-                                        ? 'bg-primary-600 text-white ring-2 ring-primary-400 scale-105 shadow-lg'
-                                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                                        ? 'bg-primary-500 text-off-white ring-2 ring-primary-500 scale-105 shadow-lg'
+                                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                                 }`}
                                 aria-pressed={reaction === label}
                                 disabled={isRewardClaimed}
@@ -209,9 +209,9 @@ const AdPlayer: React.FC<AdPlayerProps> = ({ ad, isOpen, onClaimReward, onClose 
                         ))}
                     </div>
                      <div className="text-center text-xs pt-2 h-4">
-                        {!isAdWatched && <p className="text-amber-400">Watch the ad completely to claim your reward.</p>}
-                        {isAdWatched && !reaction && <p className="text-slate-400">Please react to claim your reward.</p>}
-                        {isRewardClaimed && <p className="font-semibold text-emerald-400">Reward Claimed! Your history is updated.</p>}
+                        {!isAdWatched && <p className="text-yellow-400">Watch the ad completely to claim your reward.</p>}
+                        {isAdWatched && !reaction && <p className="text-gray-400">Please react to claim your reward.</p>}
+                        {isRewardClaimed && <p className="font-semibold text-accent-500">Reward Claimed! Your history is updated.</p>}
                      </div>
                 </div>
                 

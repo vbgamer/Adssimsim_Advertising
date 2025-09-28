@@ -1,14 +1,18 @@
 
+
+
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Campaign, User, Role, UserGender } from './types';
 import AdvertiserDashboard from './components/advertiser/AdvertiserDashboard';
 import ViewerDashboard from './components/viewer/ViewerDashboard';
 import AuthModal from './components/AuthModal';
 import Button from './components/ui/Button';
-import { SparklesIcon } from './components/icons/SparklesIcon';
+import { LogoIcon } from './components/icons/LogoIcon';
 import Footer from './components/Footer';
 import { supabase } from './supabaseClient';
 import Spinner from './components/ui/Spinner';
+import Card from './components/ui/Card';
 
 const VerificationSuccessToast = ({ show }: { show: boolean }) => {
   return (
@@ -19,7 +23,7 @@ const VerificationSuccessToast = ({ show }: { show: boolean }) => {
       }`}
     >
       {show && (
-        <div className="bg-emerald-500 text-white p-4 rounded-lg shadow-lg flex items-center gap-3">
+        <div className="bg-accent-500 text-black p-4 rounded-lg shadow-lg flex items-center gap-3 shadow-accent-500/40">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -235,7 +239,7 @@ This might be due to a missing 'ad_views' table. Error: ${adViewError.message}`
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-900 font-sans">
+    <div className="min-h-screen flex flex-col font-sans">
       <VerificationSuccessToast show={showVerificationMessage} />
       <main className="flex-grow w-full">
         {renderContent()}
@@ -251,25 +255,56 @@ This might be due to a missing 'ad_views' table. Error: ${adViewError.message}`
   );
 };
 
-const AdCard: React.FC<{ campaign: Campaign, onClick: () => void }> = ({ campaign, onClick }) => {
+const AdCard: React.FC<{ campaign: Campaign; onClick: () => void }> = ({ campaign, onClick }) => {
     const isShort = campaign.type === 'Shortz';
     const displayImageUrl = campaign.thumbnailUrl || campaign.adCreativeUrl;
+    const placeholderDescription = "Experience an exclusive offer. Discover our cutting-edge solutions and learn more about this campaign.";
+
     return (
-        <div className="cursor-pointer group" onClick={onClick} aria-label={`Watch ad for ${campaign.name}`}>
-            <div className={`relative overflow-hidden rounded-2xl bg-slate-800 shadow-lg transition-transform duration-300 group-hover:scale-105 group-hover:shadow-primary-500/30 ${isShort ? 'aspect-[9/16]' : 'aspect-video'}`}>
-                <img src={displayImageUrl} alt={campaign.name} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0"></div>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/50">
-                    <p className="text-white font-bold text-lg text-center px-4">Sign in to watch</p>
+        <Card className="group overflow-hidden cursor-pointer flex flex-col" onClick={onClick} aria-label={`Watch ad for ${campaign.name}`}>
+            {/* Image container */}
+            <div className={`relative`}>
+                <img 
+                    src={displayImageUrl} 
+                    alt={campaign.name} 
+                    className={`${isShort ? 'aspect-[9/16]' : 'aspect-video'} w-full object-cover transition-transform duration-300 group-hover:scale-105`} 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/10"></div>
+                
+                {/* Company Tag (Top Right) */}
+                <div className="absolute top-3 right-3">
+                    <span className="bg-black/50 text-white text-xs font-semibold px-2 py-1 rounded-md backdrop-blur-sm border border-white/10">
+                        {campaign.company.name}
+                    </span>
+                </div>
+                
+                {/* Category on Image (Bottom Left) */}
+                <div className="absolute bottom-3 left-4">
+                    <h3 className="text-white text-xl font-bold" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
+                        {campaign.category}
+                    </h3>
                 </div>
             </div>
-            <div className="mt-3">
-                <p className="font-semibold text-white truncate">{campaign.name}</p>
-                <p className="text-sm text-slate-400 truncate">{campaign.company.name}</p>
+
+            {/* Content Section */}
+            <div className="p-4 flex flex-col flex-grow">
+                <h2 className="text-lg font-bold text-white mb-2">{campaign.name}</h2>
+                <p className="text-gray-400 text-sm mb-4 line-clamp-2 flex-grow">
+                    {placeholderDescription}
+                </p>
+                <div className="flex items-center justify-between mt-auto pt-4">
+                    <span className="text-accent-500 font-bold text-base">
+                        {campaign.reward} PTS Reward
+                    </span>
+                    <Button variant="secondary" size="sm" className="pointer-events-none group-hover:bg-secondary-500 group-hover:text-black group-hover:shadow-glow-primary">
+                        Watch Now
+                    </Button>
+                </div>
             </div>
-        </div>
+        </Card>
     );
 };
+
 
 interface AdGalleryPageProps {
     onViewerAuthRequest: () => void;
@@ -323,16 +358,11 @@ const AdGalleryPage: React.FC<AdGalleryPageProps> = ({ onViewerAuthRequest, onAd
         fetchActiveCampaigns();
     }, []);
 
-    const activeCampaigns = campaigns; // Data is already filtered by the query
-    const firstRowCampaigns = activeCampaigns.slice(0, 3);
-    const secondRowCampaigns = activeCampaigns.slice(3, 5);
-    const remainingCampaigns = activeCampaigns.slice(5);
-
     return (
         <div className="container mx-auto px-4 py-8">
              <header className="flex justify-between items-center py-4">
                 <div className="flex items-center gap-2 cursor-pointer">
-                    <SparklesIcon className="h-8 w-8 text-primary-400" />
+                    <LogoIcon className="h-10 w-10 text-4xl" />
                     <h1 className="text-2xl font-bold text-white hidden sm:block">Adssimsim Advertising</h1>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-4">
@@ -342,14 +372,11 @@ const AdGalleryPage: React.FC<AdGalleryPageProps> = ({ onViewerAuthRequest, onAd
             </header>
             
             <div className="text-center my-12">
-                 <h2 className="text-4xl md:text-5xl font-extrabold text-white leading-tight">
+                 <h2 className="text-4xl md:text-5xl font-extrabold text-white leading-tight" style={{ textShadow: '0 0 8px rgba(46, 125, 50, 0.5)' }}>
                     Get Rewarded for Your Attention.
                     <br />
-                    <span className="text-primary-400">Power Your Brand's Reach.</span>
+                    <span className="text-primary-500">Power Your Brand's Reach.</span>
                 </h2>
-                <p className="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto mt-6">
-                    Watch engaging ads from top brands to earn rewards, or launch powerful, AI-driven campaigns to connect with your audience.
-                </p>
             </div>
             
             {isLoading ? (
@@ -358,34 +385,20 @@ const AdGalleryPage: React.FC<AdGalleryPageProps> = ({ onViewerAuthRequest, onAd
                 </div>
             ) : (
                 <div className="space-y-8">
-                    {activeCampaigns.length === 0 && (
+                    {campaigns.length === 0 ? (
                         <div className="text-center py-16">
-                            <p className="text-slate-400">No active campaigns at the moment. Check back soon!</p>
+                            <p className="text-gray-400">No active campaigns at the moment. Check back soon!</p>
                         </div>
-                    )}
-                    {/* First Row */}
-                    {firstRowCampaigns.length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-                            {firstRowCampaigns.map(campaign => (
-                                <AdCard key={campaign.id} campaign={campaign} onClick={onViewerAuthRequest} />
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Second Row */}
-                    {secondRowCampaigns.length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:w-2/3 mx-auto">
-                            {secondRowCampaigns.map(campaign => (
-                                <AdCard key={campaign.id} campaign={campaign} onClick={onViewerAuthRequest} />
-                            ))}
-                        </div>
-                    )}
-                    
-                    {/* Remaining campaigns in a standard grid */}
-                    {remainingCampaigns.length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 pt-8">
-                            {remainingCampaigns.map(campaign => (
-                                <AdCard key={campaign.id} campaign={campaign} onClick={onViewerAuthRequest} />
+                    ) : (
+                        <div className="max-w-2xl mx-auto space-y-8">
+                           {campaigns.map((campaign, index) => (
+                                <div 
+                                    key={campaign.id} 
+                                    className="animate-fade-in-up" 
+                                    style={{ animationDelay: `${index * 100}ms`, opacity: 0 }}
+                                >
+                                    <AdCard campaign={campaign} onClick={onViewerAuthRequest} />
+                                </div>
                             ))}
                         </div>
                     )}

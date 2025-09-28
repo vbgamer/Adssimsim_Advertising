@@ -128,9 +128,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
         case 'signup_success':
             return (
                 <div className="text-center">
-                    <h3 className="text-xl font-bold text-emerald-400">Account Created!</h3>
-                    <p className="mt-2 text-slate-300">
-                        Please check your email at <span className="font-semibold text-primary-400">{email}</span> to confirm your account. You can close this window.
+                    <h3 className="text-xl font-bold text-accent-500">Account Created!</h3>
+                    <p className="mt-2 text-gray-300">
+                        Please check your email at <span className="font-semibold text-primary-500">{email}</span> to confirm your account. You can close this window.
                     </p>
                     <div className="mt-6">
                         <Button onClick={onClose}>Close</Button>
@@ -140,8 +140,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
         case 'forgot_password_success':
             return (
                 <div className="text-center">
-                    <h3 className="text-xl font-bold text-emerald-400">Check Your Email</h3>
-                    <p className="mt-2 text-slate-300">
+                    <h3 className="text-xl font-bold text-accent-500">Check Your Email</h3>
+                    <p className="mt-2 text-gray-300">
                         If an account with that email exists, we've sent a link to reset your password.
                     </p>
                     <div className="mt-6">
@@ -153,13 +153,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
             return (
                  <form onSubmit={handlePasswordReset} className="space-y-6">
                     <div>
-                        <label htmlFor="email-reset" className="block text-sm font-medium text-slate-300">Email Address</label>
+                        <label htmlFor="email-reset" className="block text-sm font-medium text-gray-300">Email Address</label>
                         <input
                             type="email"
                             id="email-reset"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="mt-1 block w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                            className="mt-1 block w-full bg-gray-800 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                             required
                             autoComplete="email"
                             placeholder="Enter your account email"
@@ -167,7 +167,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
                     </div>
                     {error && <p className="text-red-400 text-sm">{error}</p>}
                     <div className="pt-4 flex items-center justify-between">
-                         <button type="button" onClick={() => { setView('auth'); setError(''); }} className="text-sm text-primary-400 hover:underline">
+                         <button type="button" onClick={() => { setView('auth'); setError(''); }} className="text-sm text-primary-500 hover:underline">
                             Back to Login
                         </button>
                         <Button type="submit" isLoading={isLoading}>Send Reset Link</Button>
@@ -180,36 +180,36 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
             return (
                 <form onSubmit={handleAuth} className="space-y-6">
                   <div>
-                    <label htmlFor="username" className="block text-sm font-medium text-slate-300">{usernameLabel}</label>
+                    <label htmlFor="username" className="block text-sm font-medium text-gray-300">{usernameLabel}</label>
                     <input
                       type="text"
                       id="username"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="mt-1 block w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      className="mt-1 block w-full bg-gray-800 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                       required
                       autoComplete="username"
                     />
                   </div>
                    <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-slate-300">Email Address</label>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email Address</label>
                     <input
                       type="email"
                       id="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="mt-1 block w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      className="mt-1 block w-full bg-gray-800 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                       required
                       autoComplete="email"
                     />
                   </div>
                   <div>
                     <div className="flex justify-between items-center">
-                        <label htmlFor="password" className="block text-sm font-medium text-slate-300">Password</label>
+                        <label htmlFor="password" className="block text-sm font-medium text-gray-300">Password</label>
                         <button 
                             type="button" 
                             onClick={() => { setView('forgot_password'); setError(''); setPassword(''); }} 
-                            className="text-xs text-primary-400 hover:underline"
+                            className="text-xs text-primary-500 hover:underline"
                         >
                             Forgot Password?
                         </button>
@@ -219,19 +219,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
                       id="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="mt-1 block w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      className="mt-1 block w-full bg-gray-800 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                       required
                       autoComplete="current-password"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="gender" className="block text-sm font-medium text-slate-300">Gender</label>
+                    <label htmlFor="gender" className="block text-sm font-medium text-gray-300">Gender</label>
                     <select
                       id="gender"
                       value={gender}
                       onChange={(e) => setGender(e.target.value as UserGender)}
-                      className="mt-1 block w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      className="mt-1 block w-full bg-gray-800 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                       required
                     >
                       <option value="" disabled>Select your gender</option>
@@ -242,15 +242,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-300">Location</label>
+                    <label className="block text-sm font-medium text-gray-300">Location</label>
                     <div className="mt-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" className="w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500" required />
-                        <input type="text" value={state} onChange={(e) => setState(e.target.value)} placeholder="State / Province" className="w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500" required />
-                        <input type="text" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" className="w-full bg-slate-700 border border-slate-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500" required />
+                        <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" className="w-full bg-gray-800 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 transition-all duration-200" required />
+                        <input type="text" value={state} onChange={(e) => setState(e.target.value)} placeholder="State / Province" className="w-full bg-gray-800 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 transition-all duration-200" required />
+                        <input type="text" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" className="w-full bg-gray-800 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 transition-all duration-200" required />
                     </div>
                   </div>
                   
-                  <p className="text-xs text-slate-500 text-center">
+                  <p className="text-xs text-gray-500 text-center">
                     If this is your first time, an account will be created for you with all the details provided.
                   </p>
                   

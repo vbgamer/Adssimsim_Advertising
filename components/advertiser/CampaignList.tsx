@@ -13,7 +13,7 @@ const StatusBadge: React.FC<{ status: Campaign['status'] }> = ({ status }) => {
   const statusStyles: Record<Campaign['status'], string> = {
     Active: 'bg-emerald-500/20 text-emerald-400',
     Pending: 'bg-amber-500/20 text-amber-400',
-    Paused: 'bg-slate-500/20 text-slate-400',
+    Paused: 'bg-gray-500/20 text-gray-400',
     Finished: 'bg-blue-500/20 text-blue-400',
     Rejected: 'bg-red-500/20 text-red-400',
     Uploading: 'bg-sky-500/20 text-sky-400',
@@ -39,7 +39,7 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onAdjustDiscount
     <button
       onClick={() => setActiveTab(type)}
       className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-        activeTab === type ? 'bg-primary-600 text-white' : 'text-slate-300 hover:bg-slate-700'
+        activeTab === type ? 'bg-primary-500 text-off-white' : 'text-gray-300 hover:bg-gray-800'
       }`}
     >
       {children}
@@ -48,7 +48,7 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onAdjustDiscount
 
   return (
     <Card>
-      <div className="p-4 border-b border-slate-700">
+      <div className="p-4 border-b border-gray-700">
         <div className="flex items-center gap-2">
           {/* Fix: Added missing children prop to TabButton components to resolve type error. */}
           <TabButton type="Video">Videos</TabButton>
@@ -57,11 +57,11 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onAdjustDiscount
       </div>
       
       {filteredCampaigns.length > 0 ? (
-        <ul className="divide-y divide-slate-800">
+        <ul className="divide-y divide-gray-700">
           {filteredCampaigns.map(campaign => (
-            <li key={campaign.id} className="p-4 flex items-center justify-between hover:bg-slate-800/50">
+            <li key={campaign.id} className="p-4 flex items-center justify-between hover:bg-gray-800/50">
               <div className="flex items-center gap-4">
-                <img src={campaign.thumbnailUrl || campaign.adCreativeUrl} alt={campaign.name} className="h-12 w-20 object-cover rounded-md bg-slate-700" />
+                <img src={campaign.thumbnailUrl || campaign.adCreativeUrl} alt={campaign.name} className="h-12 w-20 object-cover rounded-md bg-gray-800" />
                 <div>
                   <div className="flex items-center gap-2">
                     <p className={`font-semibold text-white ${campaign.status === 'Upload Failed' ? 'text-red-400' : ''}`}>{campaign.name}</p>
@@ -69,14 +69,14 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onAdjustDiscount
                     <StatusBadge status={campaign.status} />
                   </div>
                   <div className="text-sm mt-1">
-                    {campaign.status === 'Uploading' && <p className="text-slate-400">Processing creative...</p>}
+                    {campaign.status === 'Uploading' && <p className="text-gray-400">Processing creative...</p>}
                     {campaign.status === 'Upload Failed' && (
                       <pre className="text-red-500 whitespace-pre-wrap font-sans text-xs">
                         {campaign.uploadError || 'Something went wrong.'}
                       </pre>
                     )}
                     {campaign.status !== 'Uploading' && campaign.status !== 'Upload Failed' && (
-                      <p className="text-slate-400">{`${campaign.impressions.toLocaleString()} views`}</p>
+                      <p className="text-gray-400">{`${campaign.impressions.toLocaleString()} views`}</p>
                     )}
                   </div>
                 </div>
@@ -85,23 +85,23 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onAdjustDiscount
                 <div className="relative">
                   <button 
                       onClick={() => setOpenMenuId(openMenuId === campaign.id ? null : campaign.id)} 
-                      className="p-2 rounded-full hover:bg-slate-700 text-slate-400 hover:text-white"
+                      className="p-2 rounded-full hover:bg-gray-800 text-gray-400 hover:text-white"
                   >
                     <DotsVerticalIcon className="h-5 w-5" />
                   </button>
                   {openMenuId === campaign.id && (
-                    <div className="absolute right-0 mt-2 w-48 bg-slate-700 rounded-md shadow-lg z-10 py-1">
-                      <button className="block w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-600">Hide</button>
+                    <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg z-10 py-1">
+                      <button className="block w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-700">Hide</button>
                       <button 
                         onClick={() => {
                           onAdjustDiscount(campaign);
                           setOpenMenuId(null);
                         }}
-                        className="block w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-600"
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-700"
                       >
                         Adjust Cashback
                       </button>
-                      <button className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-600">Delete</button>
+                      <button className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700">Delete</button>
                     </div>
                   )}
                 </div>
@@ -110,7 +110,7 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, onAdjustDiscount
           ))}
         </ul>
       ) : (
-        <div className="p-8 text-center text-slate-400">
+        <div className="p-8 text-center text-gray-400">
           <p>No {activeTab.toLowerCase()} campaigns found.</p>
         </div>
       )}
