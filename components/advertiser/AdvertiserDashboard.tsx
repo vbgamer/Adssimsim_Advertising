@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Campaign, User } from '../../types';
 import Button from '../ui/Button';
@@ -102,6 +103,7 @@ const formatCampaigns = (data: any[]): Campaign[] => {
       type: c.type,
       company: c.company as Campaign['company'],
       duration: c.duration,
+      uploadError: c.upload_error ?? undefined,
     }));
 };
 
@@ -113,32 +115,77 @@ const AdvertiserDashboard: React.FC<AdvertiserDashboardProps> = ({ user, onLogou
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [successToastMessage, setSuccessToastMessage] = useState('');
   const [uploadingCampaignName, setUploadingCampaignName] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
   const [selectedCampaignForDiscount, setSelectedCampaignForDiscount] = useState<Campaign | null>(null);
 
-  const fetchAdvertiserCampaigns = useCallback(async () => {
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const CAMPAIGNS_PER_PAGE = 10;
+
+  const fetchAdvertiserCampaigns = useCallback(async (pageNum: number, initialLoad = false) => {
+    if (initialLoad) {
+      setIsLoading(true);
+      setFetchError(null);
+    } else {
+      if (isFetchingMore || !hasMore) return;
+      setIsFetchingMore(true);
+    }
+
+    const from = (pageNum - 1) * CAMPAIGNS_PER_PAGE;
+    const to = from + CAMPAIGNS_PER_PAGE - 1;
+
     const { data, error } = await supabase
       .from('campaigns')
       .select('*')
       .eq('advertiser_id', user.id)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
     if (error) {
-      console.error("Error fetching advertiser campaigns:", error);
-      setCampaigns([]);
+      console.error("Error fetching advertiser campaigns:", error.message);
+      let userFriendlyError = "Could not load your campaigns. Please try again later.";
+      if (error.message.includes('violates row-level security policy')) {
+          userFriendlyError = `There's a database security policy blocking access to your campaigns. If you are the developer, please ensure Row Level Security (RLS) is configured to allow advertisers to view their own campaigns.`;
+          console.error(
+`Hint: This error is commonly caused by a missing Row Level Security (RLS) policy on the 'campaigns' table. Advertisers need permission to view their own campaigns.
+Please go to your Supabase project's SQL Editor and ensure a policy exists for this.
+
+Example policy for allowing an advertiser to see their own campaigns:
+CREATE POLICY "Allow advertiser to read their own campaigns" ON public.campaigns FOR SELECT USING (auth.uid() = advertiser_id);
+`
+          );
+      }
+      setFetchError(userFriendlyError);
+      if (initialLoad) setCampaigns([]);
     } else if (data) {
-      setCampaigns(formatCampaigns(data));
+      const newCampaigns = formatCampaigns(data);
+      const uniqueNewCampaigns = newCampaigns.filter(nc => !campaigns.some(c => c.id === nc.id && c.status !== 'Uploading'));
+      
+      if (initialLoad) {
+        setCampaigns(prev => [...prev.filter(c => c.status === 'Uploading' || c.status === 'Upload Failed'), ...newCampaigns]);
+        setPage(2);
+      } else {
+        setCampaigns(prev => [...prev, ...uniqueNewCampaigns]);
+        setPage(p => p + 1);
+      }
+      setHasMore(data.length === CAMPAIGNS_PER_PAGE);
     }
-    setIsLoading(false);
-  }, [user.id]);
+    
+    if (initialLoad) setIsLoading(false);
+    else setIsFetchingMore(false);
+  }, [user.id, campaigns, isFetchingMore, hasMore]);
 
   useEffect(() => {
-    setIsLoading(true);
-    fetchAdvertiserCampaigns();
+    const fetchInitialData = () => {
+      setCampaigns(prev => prev.filter(c => c.status === 'Uploading' || c.status === 'Upload Failed'));
+      fetchAdvertiserCampaigns(1, true);
+    }
+    fetchInitialData();
 
-    // Poll for changes every 15 seconds as a fallback for misconfigured realtime
-    const intervalId = setInterval(fetchAdvertiserCampaigns, 15000);
+    const intervalId = setInterval(fetchInitialData, 15000);
 
     const channel = supabase.channel(`campaigns-advertiser-${user.id}`)
         .on(
@@ -146,8 +193,8 @@ const AdvertiserDashboard: React.FC<AdvertiserDashboardProps> = ({ user, onLogou
             { event: '*', schema: 'public', table: 'campaigns', filter: `advertiser_id=eq.${user.id}` },
             (payload) => {
                 console.log('Advertiser campaign change detected, refetching.');
-                clearInterval(intervalId); // Realtime is working, stop polling.
-                fetchAdvertiserCampaigns();
+                clearInterval(intervalId);
+                fetchInitialData();
             }
         )
         .subscribe();
@@ -156,13 +203,12 @@ const AdvertiserDashboard: React.FC<AdvertiserDashboardProps> = ({ user, onLogou
         clearInterval(intervalId);
         supabase.removeChannel(channel);
     };
-  }, [fetchAdvertiserCampaigns, user.id]);
+  }, [user.id]); // Removed fetchAdvertiserCampaigns from deps to control it manually
 
+  const handleLoadMore = () => {
+    fetchAdvertiserCampaigns(page, false);
+  };
 
-  const visibleCampaigns = campaigns.filter(c => c.status !== 'Uploading' && c.status !== 'Upload Failed');
-  const totalRewardedPoints = visibleCampaigns.reduce((sum, c) => sum + (c.rewardedPoints || 0), 0);
-  const totalImpressions = visibleCampaigns.reduce((sum, c) => sum + c.impressions, 0);
-  
   const handleCampaignSubmit = async (
     newCampaignData: Omit<Campaign, 'id' | 'impressions' | 'clicks' | 'status' | 'advertiser_id' | 'thumbnailUrl'>,
     creativeFile: File,
@@ -233,19 +279,19 @@ const AdvertiserDashboard: React.FC<AdvertiserDashboardProps> = ({ user, onLogou
           company: newCampaignData.company,
           duration: newCampaignData.duration,
           advertiser_id: user.id,
-          status: 'Pending', // Set status to Pending for review
+          status: 'Active', // Set status to Active for immediate visibility
         });
 
       if (insertError) {
         throw insertError; // Propagate the original error
       }
       
-      // 4. Refresh campaign list from DB (realtime listener will handle this, but an explicit call provides faster feedback)
-      await fetchAdvertiserCampaigns();
+      // 4. Refresh campaign list from DB
+      await fetchAdvertiserCampaigns(1, true);
 
       // 5. Show success notification
       setUploadingCampaignName(null);
-      setSuccessToastMessage(`Your campaign "${newCampaignData.name}" is submitted for review. An email has been sent from ${user.email} to bhosalevedant333@gmail.com.`);
+      setSuccessToastMessage(`Your campaign "${newCampaignData.name}" has been launched and is now live! An email confirmation has been sent from ${user.email} to bhosalevedant333@gmail.com.`);
       setShowSuccessToast(true);
 
     } catch (error: any) {
@@ -354,6 +400,9 @@ This is the most common error when setting up the project. To fix it, please run
       throw error; // Propagate error to modal
     }
   };
+  
+  const totalRewardedPoints = campaigns.reduce((sum, c) => sum + (c.rewardedPoints || 0), 0);
+  const totalImpressions = campaigns.reduce((sum, c) => sum + c.impressions, 0);
 
   return (
     <div className="min-h-screen text-white">
@@ -405,6 +454,11 @@ This is the most common error when setting up the project. To fix it, please run
             <div className="flex justify-center items-center py-16">
               <Spinner className="h-12 w-12" />
             </div>
+          ) : fetchError ? (
+            <Card className="p-6 bg-red-900/20">
+                <h4 className="font-semibold text-red-400">Error Loading Campaigns</h4>
+                <p className="text-red-300/80 text-sm mt-2 whitespace-pre-wrap">{fetchError}</p>
+            </Card>
           ) : (
             <>
               {/* Analytics Section */}
@@ -434,7 +488,14 @@ This is the most common error when setting up the project. To fix it, please run
               {/* Manage Campaigns Section */}
               <div>
                 <h2 className="text-2xl font-bold text-white mb-4">Manage Your Campaigns</h2>
-                <CampaignList campaigns={campaigns} onAdjustDiscount={handleOpenDiscountModal} />
+                <CampaignList 
+                  campaigns={campaigns} 
+                  onAdjustDiscount={handleOpenDiscountModal}
+                  onLoadMore={handleLoadMore}
+                  hasMore={hasMore}
+                  isLoadingMore={isFetchingMore}
+                  onCreateCampaignClick={() => setIsModalOpen(true)}
+                />
               </div>
             </>
           )}

@@ -48,29 +48,69 @@ const ViewerDashboard: React.FC<ViewerDashboardProps> = ({ user, onLogout, onRew
   const [watchedHistory, setWatchedHistory] = useState<WatchedAd[]>([]);
   const [activeTab, setActiveTab] = useState<ViewerTab>('Lit');
   const [searchQuery, setSearchQuery] = useState('');
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const fetchActiveCampaigns = useCallback(async () => {
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const CAMPAIGNS_PER_PAGE = 10;
+
+  const fetchCampaignsByPage = useCallback(async (pageNum: number, initialLoad = false) => {
+    if (initialLoad) {
+        setIsLoading(true);
+        setFetchError(null);
+    } else {
+        if (isFetchingMore || !hasMore) return;
+        setIsFetchingMore(true);
+    }
+    
+    const from = (pageNum - 1) * CAMPAIGNS_PER_PAGE;
+    const to = from + CAMPAIGNS_PER_PAGE - 1;
+
     const { data, error } = await supabase
       .from('campaigns')
       .select('*')
       .eq('status', 'Active')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
     if (error) {
-      console.error("Error fetching active campaigns:", error);
-      setCampaigns([]);
+      console.error("Error fetching active campaigns:", error.message);
+      let userFriendlyError = "Could not load campaigns. Please try again later.";
+      if (error.message.includes('violates row-level security policy')) {
+        userFriendlyError = `There's a database security policy blocking access to campaigns. If you are the developer, please ensure Row Level Security (RLS) is configured to allow authenticated users to view active campaigns.`;
+        console.error(
+`Hint: This error is commonly caused by a missing Row Level Security (RLS) policy on the 'campaigns' table. Logged-in viewers need permission to read active campaigns.
+Please go to your Supabase project's SQL Editor and ensure a policy exists for authenticated users to view active campaigns.
+
+Example policy for allowing anyone to view active campaigns (if not already present):
+CREATE POLICY "Allow public read access to active campaigns" ON public.campaigns FOR SELECT USING (status = 'Active'::text);
+`
+        );
+      }
+      setFetchError(userFriendlyError);
+      if (initialLoad) setCampaigns([]);
     } else if (data) {
-      setCampaigns(formatCampaigns(data));
+      const newCampaigns = formatCampaigns(data);
+      if (initialLoad) {
+          setCampaigns(newCampaigns);
+          setPage(2);
+      } else {
+          setCampaigns(prev => [...prev, ...newCampaigns]);
+          setPage(p => p + 1);
+      }
+      setHasMore(data.length === CAMPAIGNS_PER_PAGE);
     }
-    setIsLoading(false);
-  }, []);
+
+    if (initialLoad) setIsLoading(false);
+    else setIsFetchingMore(false);
+  }, [isFetchingMore, hasMore]);
 
   useEffect(() => {
-    setIsLoading(true);
-    fetchActiveCampaigns();
+    const fetchInitialData = () => fetchCampaignsByPage(1, true);
+    fetchInitialData();
 
-    // Poll for changes every 15 seconds as a fallback for misconfigured realtime
-    const intervalId = setInterval(fetchActiveCampaigns, 15000);
+    const intervalId = setInterval(fetchInitialData, 15000);
 
     const channel = supabase.channel(`campaigns-viewer-${user.id}`)
         .on(
@@ -78,8 +118,8 @@ const ViewerDashboard: React.FC<ViewerDashboardProps> = ({ user, onLogout, onRew
             { event: '*', schema: 'public', table: 'campaigns' },
             (payload) => {
                 console.log('Campaigns table change detected for viewer, refetching.');
-                clearInterval(intervalId); // Realtime is working, stop polling.
-                fetchActiveCampaigns();
+                clearInterval(intervalId);
+                fetchInitialData();
             }
         )
         .subscribe();
@@ -88,7 +128,11 @@ const ViewerDashboard: React.FC<ViewerDashboardProps> = ({ user, onLogout, onRew
         clearInterval(intervalId);
         supabase.removeChannel(channel);
     };
-  }, [fetchActiveCampaigns, user.id]);
+  }, [fetchCampaignsByPage, user.id]);
+
+  const handleLoadMore = () => {
+    fetchCampaignsByPage(page, false);
+  };
 
 
   useEffect(() => {
@@ -197,12 +241,33 @@ To enable history, please ensure your Supabase schema is up to date.`
             </div>
         );
     }
+
+    if (fetchError) {
+        return (
+            <div className="text-center py-16 bg-red-900/20 p-6 rounded-lg max-w-3xl mx-auto">
+                <h3 className="text-xl font-bold text-red-400">Could Not Load Campaigns</h3>
+                <p className="text-red-300 mt-2">{fetchError}</p>
+            </div>
+        );
+    }
     
     switch(activeTab) {
       case 'Explore':
-        return <AdFeed campaigns={searchedCampaigns} onWatchAd={handleWatchAd} />;
+        return <AdFeed 
+                  campaigns={searchedCampaigns} 
+                  onWatchAd={handleWatchAd} 
+                  onLoadMore={handleLoadMore}
+                  hasMore={hasMore && !searchQuery}
+                  isLoadingMore={isFetchingMore}
+               />;
       case 'Lit':
-        return <LitFeed campaigns={searchedCampaigns.filter(c => c.type === 'Video')} onWatchAd={handleWatchAd} />;
+        return <LitFeed 
+                  campaigns={searchedCampaigns.filter(c => c.type === 'Video')} 
+                  onWatchAd={handleWatchAd} 
+                  onLoadMore={handleLoadMore}
+                  hasMore={hasMore && !searchQuery}
+                  isLoadingMore={isFetchingMore}
+               />;
       case 'You':
         return <ProfilePage user={user} onLogout={onLogout} watchedHistory={watchedHistory} rewardPoints={user.rewardPoints || 0} />;
       default:

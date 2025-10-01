@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Campaign, User, Role, UserGender } from './types';
 import AdvertiserDashboard from './components/advertiser/AdvertiserDashboard';
@@ -10,6 +11,7 @@ import Footer from './components/Footer';
 import { supabase } from './supabaseClient';
 import Spinner from './components/ui/Spinner';
 import Card from './components/ui/Card';
+import { MegaphoneIcon } from './components/icons/MegaphoneIcon';
 
 const VerificationSuccessToast = ({ show }: { show: boolean }) => {
   return (
@@ -281,7 +283,8 @@ const AdCard: React.FC<{ campaign: Campaign; onClick: () => void }> = ({ campaig
             <div className={`relative`}>
                 <img 
                     src={displayImageUrl} 
-                    alt={campaign.name} 
+                    alt={campaign.name}
+                    loading="lazy"
                     className={`${isShort ? 'aspect-[9/16]' : 'aspect-video'} w-full object-cover transition-transform duration-300 group-hover:scale-105`} 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/10"></div>
@@ -352,29 +355,69 @@ const formatCampaigns = (data: any[]): Campaign[] => {
 const AdGalleryPage: React.FC<AdGalleryPageProps> = ({ onViewerAuthRequest, onAdvertiserAuthRequest }) => {
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const [fetchError, setFetchError] = useState<string | null>(null);
+    const CAMPAIGNS_PER_PAGE = 8;
 
-    const fetchActiveCampaigns = useCallback(async () => {
-        const { data, error } = await supabase
-          .from('campaigns')
-          .select('*')
-          .eq('status', 'Active')
-          .order('created_at', { ascending: false });
+    const fetchCampaigns = useCallback(async (pageNum: number, initialLoad = false) => {
+      if (initialLoad) {
+        setIsLoading(true);
+        setFetchError(null);
+      } else {
+        if (isFetchingMore || !hasMore) return;
+        setIsFetchingMore(true);
+      }
+      
+      const from = (pageNum - 1) * CAMPAIGNS_PER_PAGE;
+      const to = from + CAMPAIGNS_PER_PAGE - 1;
 
-        if (error) {
-          console.error("Error fetching active campaigns:", error);
-          setCampaigns([]);
-        } else if (data) {
-          setCampaigns(formatCampaigns(data));
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('status', 'Active')
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (error) {
+        console.error("Error fetching active campaigns:", error.message);
+        let userFriendlyError = "Could not load campaigns. Please try again later.";
+        if (error.message.includes('violates row-level security policy')) {
+          userFriendlyError = `There's a database security policy blocking access to campaigns. If you are the developer, please ensure Row Level Security (RLS) is configured to allow public access to active campaigns.`;
+          console.error(
+`Hint: This error is commonly caused by a missing Row Level Security (RLS) policy on the 'campaigns' table. The public gallery needs to be able to read active campaigns.
+Please go to your Supabase project's SQL Editor and run a command to create a policy for public access.
+
+Example policy for allowing anyone to view active campaigns:
+CREATE POLICY "Allow public read access to active campaigns" ON public.campaigns FOR SELECT USING (status = 'Active'::text);
+`
+          );
         }
-        setIsLoading(false);
-    }, []);
+        setFetchError(userFriendlyError);
+        if (initialLoad) setCampaigns([]);
+      } else if (data) {
+        const newCampaigns = formatCampaigns(data);
+        if (initialLoad) {
+          setCampaigns(newCampaigns);
+          setPage(2);
+        } else {
+          setCampaigns(prev => [...prev, ...newCampaigns]);
+          setPage(p => p + 1);
+        }
+        setHasMore(data.length === CAMPAIGNS_PER_PAGE);
+      }
+      
+      if (initialLoad) setIsLoading(false);
+      else setIsFetchingMore(false);
+    }, [isFetchingMore, hasMore]);
+
 
     useEffect(() => {
-        setIsLoading(true);
-        fetchActiveCampaigns();
+        const fetchInitialData = () => fetchCampaigns(1, true);
+        fetchInitialData();
 
-        // Poll for changes every 15 seconds as a fallback for misconfigured realtime
-        const intervalId = setInterval(fetchActiveCampaigns, 15000);
+        const intervalId = setInterval(fetchInitialData, 15000);
 
         const channel = supabase.channel('campaigns-public-gallery')
             .on(
@@ -382,8 +425,8 @@ const AdGalleryPage: React.FC<AdGalleryPageProps> = ({ onViewerAuthRequest, onAd
                 { event: '*', schema: 'public', table: 'campaigns' },
                 (payload) => {
                     console.log('Campaigns table change detected, refetching.');
-                    clearInterval(intervalId); // Realtime is working, stop polling.
-                    fetchActiveCampaigns();
+                    clearInterval(intervalId);
+                    fetchInitialData();
                 }
             )
             .subscribe();
@@ -392,7 +435,7 @@ const AdGalleryPage: React.FC<AdGalleryPageProps> = ({ onViewerAuthRequest, onAd
             clearInterval(intervalId);
             supabase.removeChannel(channel);
         };
-    }, [fetchActiveCampaigns]);
+    }, [fetchCampaigns]);
 
 
     return (
@@ -420,11 +463,41 @@ const AdGalleryPage: React.FC<AdGalleryPageProps> = ({ onViewerAuthRequest, onAd
                 <div className="flex justify-center items-center py-16">
                     <Spinner className="h-12 w-12" />
                 </div>
+            ) : fetchError ? (
+                <div className="text-center py-16 bg-red-900/20 p-6 rounded-lg max-w-3xl mx-auto">
+                    <h3 className="text-xl font-bold text-red-400">Could Not Load Campaigns</h3>
+                    <p className="text-red-300 mt-2">{fetchError}</p>
+                </div>
             ) : (
-                <div className="space-y-8">
+                <div>
                     {campaigns.length === 0 ? (
-                        <div className="text-center py-16">
-                            <p className="text-gray-400">No active campaigns at the moment. Check back soon!</p>
+                        <div className="text-center p-8 mt-8 max-w-3xl mx-auto bg-charcoal/50 rounded-2xl border border-gray-800 shadow-xl">
+                            <div className="relative w-24 h-24 mx-auto">
+                                <div className="absolute inset-0 bg-primary-500 rounded-full animate-ping opacity-50"></div>
+                                <div className="relative flex items-center justify-center h-full">
+                                    <MegaphoneIcon className="h-16 w-16 text-primary-400 animate-pulse"/>
+                                </div>
+                            </div>
+                            <h3 className="mt-6 text-3xl font-extrabold text-white bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent-500">
+                                The Stage is Set for Greatness
+                            </h3>
+                            <p className="mt-4 text-gray-300 max-w-xl mx-auto">
+                                This is where brands connect with their audience. Be the first to launch a campaign and captivate viewers, or sign up to earn rewards.
+                            </p>
+                            <div className="mt-8 flex justify-center gap-4">
+                                <Button onClick={onAdvertiserAuthRequest} variant="primary" size="lg">Launch a Campaign</Button>
+                                <Button onClick={onViewerAuthRequest} variant="secondary" size="lg">Watch & Earn</Button>
+                            </div>
+                            <details className="mt-10 text-xs text-gray-600 text-left bg-dark p-3 rounded-md max-w-xl mx-auto cursor-pointer">
+                                <summary className="font-bold outline-none">First time setup? (Developer Info)</summary>
+                                <div className="mt-2 space-y-1">
+                                    <p>If this is a new deployment and you're expecting to see sample campaigns, please ensure:</p>
+                                    <ul className="list-disc list-inside pl-2">
+                                        <li>You have seeded your database with campaign data.</li>
+                                        <li>Your Supabase Row Level Security (RLS) policies are active. A policy is required to allow public read access to campaigns where `status = 'Active'`.</li>
+                                    </ul>
+                                </div>
+                            </details>
                         </div>
                     ) : (
                         <div className="max-w-2xl mx-auto space-y-8">
@@ -437,6 +510,13 @@ const AdGalleryPage: React.FC<AdGalleryPageProps> = ({ onViewerAuthRequest, onAd
                                     <AdCard campaign={campaign} onClick={onViewerAuthRequest} />
                                 </div>
                             ))}
+                        </div>
+                    )}
+                    {hasMore && (
+                        <div className="text-center mt-8">
+                            <Button onClick={() => fetchCampaigns(page)} isLoading={isFetchingMore}>
+                                {isFetchingMore ? 'Loading...' : 'Load More'}
+                            </Button>
                         </div>
                     )}
                 </div>
