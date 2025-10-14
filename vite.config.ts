@@ -67,7 +67,6 @@
       };
     </script>
 
-    <!-- ✅ Import map with integrity -->
     <script type="importmap">
     {
       "imports": {
