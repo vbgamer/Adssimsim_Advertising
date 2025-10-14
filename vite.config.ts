@@ -1,90 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Adssimsim Advertising</title>
+import path from 'path';
+import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react';
 
-    <!-- ✅ Tailwind with integrity -->
-    <script 
-      src="https://cdn.tailwindcss.com" 
-      integrity="sha384-5q4ySKxJ7F4h3sJ0Dxq5JmXg+S3L+SmvqMb1uzD0XjSCDkKeP2bCyo8cg0+4znx+" 
-      crossorigin="anonymous">
-    </script>
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, '.', '');
 
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: {
-                '400': '#4CAF50',
-                '500': '#2E7D32',
-                '600': '#1B5E20',
-              },
-              secondary: {
-                '500': '#81C784',
-              },
-              accent: {
-                '500': '#FFD700',
-              },
-              dark: '#0B0B0B',
-              charcoal: '#1C1C1C',
-              'off-white': '#F5F5F5',
-            },
-            boxShadow: {
-              'glow-primary':
-                '0 0 5px theme(colors.primary.500), 0 0 10px theme(colors.primary.500), 0 0 15px theme(colors.primary.500/50)',
-              'glow-accent':
-                '0 0 5px theme(colors.accent.500), 0 0 10px theme(colors.accent.500), 0 0 15px theme(colors.accent.500/50)',
-            },
-            animation: {
-              'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
-              'logo-pulse': 'logo-pulse 4s ease-in-out infinite',
-            },
-            keyframes: {
-              'fade-in-up': {
-                from: { opacity: '0', transform: 'translateY(20px)' },
-                to: { opacity: '1', transform: 'translateY(0)' },
-              },
-              'logo-pulse': {
-                '0%, 100%': {
-                  color: 'theme(colors.primary.500)',
-                  borderColor: 'theme(colors.primary.500)',
-                  filter: 'drop-shadow(0 0 6px theme(colors.primary.500))',
-                },
-                '50%': {
-                  color: 'theme(colors.accent.500)',
-                  borderColor: 'theme(colors.accent.500)',
-                  filter:
-                    'drop-shadow(0 0 10px theme(colors.accent.500)) drop-shadow(0 0 18px theme(colors.accent.500)/50)',
-                },
-              },
-            },
-          },
-        },
-      };
-    </script>
-
-    <script type="importmap">
-    {
-      "imports": {
-        "@google/genai": "https://esm.sh/@google/genai@1.12.0",
-        "react-dom/": "https://esm.sh/react-dom@19.1.1/",
-        "react/": "https://esm.sh/react@19.1.1/",
-        "react": "https://esm.sh/react@19.1.1",
-        "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.45.0"
-      }
-    }
-    </script>
-
-    <link rel="stylesheet" href="/index.css" />
-  </head>
-  <body class="bg-dark text-off-white">
-    <div id="root"></div>
-
-    <!-- ✅ Add integrity to your entry script if hosted externally -->
-    <script type="module" src="/index.tsx"></script>
-  </body>
-</html>
+  return {
+    server: {
+      port: 3000,
+      host: '0.0.0.0',
+    },
+    preview: {
+      allowedHosts: ['adssimsim-advertising.onrender.com'], // ✅ Allow your Render domain
+    },
+    plugins: [react()],
+    define: {
+      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+    },
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, '.'),
+      },
+    },
+  };
+});
